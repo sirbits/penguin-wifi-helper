@@ -54,9 +54,10 @@ function get_nv_value(param)
 end
 
 -- 定义对应参数(太多不想写注释)
-local intype = get_nv_value("Intype")
+local intype = get_nv_value("zcgmi")
 local fota_platform = get_nv_value("fota_platform")
 local cr_version = get_nv_value("cr_version")
+local remo_web_sw_version = get_nv_value("remo_web_sw_version")
 local hw_version = get_nv_value("hw_version")
 local os_url = get_nv_value("os_url")
 local Language = get_nv_value("Language")
@@ -64,6 +65,7 @@ local fota_oem = get_nv_value("fota_oem")
 local apn_mode = get_nv_value("apn_mode")
 local default_apn = get_nv_value("default_apn")
 local SSID1 = get_nv_value("SSID1")
+local m_SSID = get_nv_value("m_SSID")
 local DMZEnable = get_nv_value("DMZEnable")
 local upnpEnabled = get_nv_value("upnpEnabled")
 local sntp_timezone = get_nv_value("sntp_timezone")
@@ -73,10 +75,26 @@ local sim_unlock_code = get_nv_value("sim_unlock_code")
 local remo_sim_admin_password = get_nv_value("remo_sim_admin_password")
 local admin_Password = get_nv_value("admin_Password")
 local dhcpDns = get_nv_value("dhcpDns")
-local dns_extern = get_nv_value("dns_extern")
 local tr069_enable = get_nv_value("tr069_enable")
 local tr069_acs_url = get_nv_value("tr069_acs_url")
+-- Remo专属内容 add Start 2025.06.25
+local remo_sim_select = get_nv_value("remo_sim_select_display_type")
+local remo_root_server_url = get_nv_value("fota_request_host")
+local remo_root_server_url2 = get_nv_value("remo_fota_request_host")
+local remo_root_server_url3 = get_nv_value("remo_dm_request_host")
+local remo_root_server_port3 = get_nv_value("remo_dm_request_port")
+local remo_root_server_path3 = get_nv_value("remo_dm_request_path")
+local remo_config_server_url = get_nv_value("xinxun_iot_http_get_config_host")
+local remo_config_server_path = get_nv_value("xinxun_iot_http_get_config_path")
+local remo_led_server_url = get_nv_value("xinxun_iot_http_led_control_host")
+local remo_led_server_path = get_nv_value("xinxun_iot_http_led_control_path")
+local remo_flow_server_url = get_nv_value("xinxun_iot_http_flow_report_host")
+local remo_flow_server_path = get_nv_value("xinxun_iot_http_flow_report_path")
+local remo_info_server_url = get_nv_value("xinxun_iot_http_info_report_host")
+local remo_info_server_path = get_nv_value("xinxun_iot_http_info_report_path")
+-- Remo专属内容 add End
 local fota_updateMode = get_nv_value("fota_updateMode")
+local fota_updateIntervalDay = get_nv_value("fota_updateIntervalDay")
 local fota_version_delta_url = get_nv_value("fota_version_delta_url")
 local tc_enable = get_nv_value("tc_enable")
 local tc_uplink = get_nv_value("tc_uplink")
@@ -92,7 +110,9 @@ else
 	print(colors.cyan .. colors.bright .. "══════ 系统信息══════════════════════════════════════════" .. colors.reset)
 	print(colors.red .. colors.bright .. "无法获取设备类型与搭载的平台" .. colors.reset)
 end
-if cr_version ~= "" then
+if remo_web_sw_version ~= "" then
+	print(colors.yellow .. colors.bright .. "软件版本: " .. remo_web_sw_version .. colors.reset)
+elseif cr_version ~= "" then
 	print(colors.yellow .. colors.bright .. "软件版本: " .. cr_version .. colors.reset)
 else
 	print(colors.red .. colors.bright .. "无法获取软件版本" .. colors.reset)
@@ -124,25 +144,18 @@ if DMZEnable ~= "" then
 else
 	print(colors.red .. colors.bright .. "无法获取dmz与upnp信息" .. colors.reset)
 end
+print(colors.cyan .. colors.bright .. "══════ WIFI信息══════════════════════════════════════════" .. colors.reset)
 if max_station_num ~= "" then
-	print(colors.cyan .. colors.bright .. "══════ WIFI信息══════════════════════════════════════════" .. colors.reset)
 	print(colors.green .. colors.bright .. "WIFI开启: " .. wifiEnabled .. "              最大连接数: " .. max_station_num .. "个" .. colors.reset)
 else
-	print(colors.cyan .. colors.bright .. "══════ WIFI信息══════════════════════════════════════════" .. colors.reset)
 	print(colors.red .. colors.bright .. "无法获取wifi信息" .. colors.reset)
 end
 if SSID1 ~= "" then
-	print(colors.yellow .. colors.bright .. "当前WIFI名称: " .. SSID1 .. colors.reset)
+	print(colors.yellow .. colors.bright .. "当前WIFI名称: " .. SSID1 .. "   多重WIFI名称: " .. m_SSID .. colors.reset)
 else
 	print(colors.red .. colors.bright .. "无法获取wifi信息" .. colors.reset)
 end
-if dns_extern ~= "" then
-	print(colors.cyan .. colors.bright .. "══════ 网络信息══════════════════════════════════════════" .. colors.reset)
-	print(colors.bright .. "DNS地址: " .. dns_extern .. colors.reset)
-else
-	print(colors.cyan .. colors.bright .. "══════ 网络信息══════════════════════════════════════════" .. colors.reset)
-	print(colors.red .. colors.bright .. "无法获取DNS地址,设备应该不支持" .. colors.reset)
-end
+print(colors.cyan .. colors.bright .. "══════ 网络信息══════════════════════════════════════════" .. colors.reset)
 if dhcpDns ~= "" then
 	print(colors.bright .. "后台地址: " .. dhcpDns .. colors.reset)
 else
@@ -154,37 +167,94 @@ else
 	print(colors.red .. colors.bright .. "无法获取后台密码" .. colors.reset)
 end
 if sim_unlock_code ~= "" then
-	print(colors.cyan .. colors.bright .. "══════ 密码相关══════════════════════════════════════════" .. colors.reset)
-	print(colors.yellow .. colors.bright .. "SIM解锁码(SZXF): " .. sim_unlock_code .. colors.reset)
+    print(colors.cyan .. colors.bright .. "══════ 密码相关══════════════════════════════════════════" .. colors.reset)
+	print(colors.yellow .. colors.bright .. "SIM解锁码: " .. sim_unlock_code .. colors.reset)
 else
-	print(colors.cyan .. colors.bright .. "══════ 密码相关══════════════════════════════════════════" .. colors.reset)
-	print(colors.red .. colors.bright .. "SIM解锁码(SZXF):无法获取,设备不是SZXF或没有密码" .. colors.reset)
 end
 if remo_sim_admin_password ~= "" then
-	print(colors.yellow .. colors.bright .. "SIM解锁码(REMO): " .. remo_sim_admin_password .. colors.reset)
+    print(colors.cyan .. colors.bright .. "══════ 密码相关══════════════════════════════════════════" .. colors.reset)
+	print(colors.yellow .. colors.bright .. "SIM模式: " .. remo_sim_select .. colors.reset)
+	print(colors.yellow .. colors.bright .. "SIM解锁码: " .. remo_sim_admin_password .. colors.reset)
 else
-	print(colors.red .. colors.bright .. "SIM解锁码(REMO):无法获取,设备不是REMO或没有密码" .. colors.reset)
 end
-print(colors.cyan .. colors.bright .. "══════ 远程相关══════════════════════════════════════════" .. colors.reset)
+print(colors.cyan .. colors.bright .. "══════ 远程控制══════════════════════════════════════════" .. colors.reset)
+
+-- tr069显示
 if tr069_enable ~= "" then
 	print(colors.yellow .. colors.bright .. "tr069(acs)开关: " .. tr069_enable .. "            tr069地址：" .. tr069_acs_url .. colors.reset)
 	print(" ")
 else
-	print(colors.red .. colors.bright .. "无法获取:tr069信息,设备不支持tr069" .. colors.reset)
 	print(" ")
 end
+
+-- 自动升级显示
 if fota_updateMode ~= "" then
-	print(colors.yellow .. colors.bright .. "自动升级模式: " .. fota_updateMode .. "          升级地址:" .. fota_version_delta_url .. colors.reset)
+	if fota_updateMode == "0" then
+		print(colors.yellow .. colors.bright .. "自动升级：关闭" .. colors.reset)
+	else
+		print(colors.yellow .. colors.bright .. "自动升级： 是" ..
+		      "       检测时间: " .. fota_updateIntervalDay .. "天" .. colors.reset)
+	end
 	print(" ")
 else
-	print(colors.red .. colors.bright .. "无法获取自动升级,设备应该不支持自动升级" .. colors.reset)
+	print()
 end
+
+-- 限速显示
 if tc_enable ~= "" then
-	print(colors.yellow .. colors.bright .. "tc状态: " .. tc_enable .. "       上传地址:" .. tc_uplink .. "       下载地址:" .. tc_downlink .. colors.reset)
+	if tc_enable == "0" then
+		print(colors.yellow .. colors.bright .. "限速开启: 否" .. colors.reset)
+	else
+		print(colors.yellow .. colors.bright .. "限速开启: 是" ..
+		      "       上传速率: " .. tc_uplink ..
+		      "       下载速率: " .. tc_downlink .. colors.reset)
+	end
 	print(" ")
 else
 	print(colors.red .. colors.bright .. "无法获取TC，设备应该不支持" .. colors.reset)
 end
+
+-- Remo专属远程服务器显示
+local has_remo = false
+if remo_root_server_url ~= "" then
+	print(colors.yellow .. colors.bright .. "主服务器: " .. remo_root_server_url .. colors.reset)
+	has_remo = true
+end
+if remo_root_server_url2 ~= "" then
+	print(colors.yellow .. colors.bright .. "备用服务器: " .. remo_root_server_url2 .. colors.reset)
+	has_remo = true
+end
+if remo_root_server_url3 ~= "" then
+	local url3 = remo_root_server_url3
+	if remo_root_server_port3 ~= "" then
+		url3 = url3 .. ":" .. remo_root_server_port3
+	end
+	if remo_root_server_path3 ~= "" then
+		url3 = url3 .. "/" .. remo_root_server_path3
+	end
+	print(colors.yellow .. colors.bright .. "备用服务器: " .. url3 .. colors.reset)
+	has_remo = true
+end
+if remo_config_server_url ~= "" and remo_config_server_path ~= "" then
+	print(colors.yellow .. colors.bright .. "配置服务器: " .. remo_config_server_url .. "/" .. remo_config_server_path .. colors.reset)
+	has_remo = true
+end
+if remo_led_server_url ~= "" and remo_led_server_path ~= "" then
+	print(colors.yellow .. colors.bright .. "LED控制服务器: " .. remo_led_server_url .. "/" .. remo_led_server_path .. colors.reset)
+	has_remo = true
+end
+if remo_flow_server_url ~= "" and remo_flow_server_path ~= "" then
+	print(colors.yellow .. colors.bright .. "流量上报服务器: " .. remo_flow_server_url .. "/" .. remo_flow_server_path .. colors.reset)
+	has_remo = true
+end
+if remo_info_server_url ~= "" and remo_info_server_path ~= "" then
+	print(colors.yellow .. colors.bright .. "信息上报服务器: " .. remo_info_server_url .. "/" .. remo_info_server_path .. colors.reset)
+	has_remo = true
+end
+if has_remo then
+	print(" ")
+end
+
 print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════════════════" .. colors.reset)
 print()
 

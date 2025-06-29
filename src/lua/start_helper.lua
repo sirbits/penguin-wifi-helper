@@ -11,7 +11,7 @@
 -- ChatGPT协助制作编写
 
 -- 设置标题终端与定义窗口大小
-os.execute("title 企鹅WIFI助手__当前版本: 4.9 ,正在检测版本")
+os.execute("title 企鹅WIFI助手__当前版本: 5.0 ,正在检测版本")
 os.execute("mode con: cols=53 lines=15")
 
 -- 引入外部库
@@ -31,58 +31,16 @@ local file = io.open(flag_file, "r")
 if file then
     file:close()
     
-    -- 输出第一次运行提示
-    print("助手正在初始化....")
-    delay.sleep(6)
-    print ()
-    -- 获取 Windows 版本
-    local handle = io.popen("wmic os get Caption")
-    local result = handle:read("*a")
-    handle:close()
-
-   -- 判断 Windows 版本
-   if result:find("Windows 10") then
-       print(colors.cyan .. colors.bright .. "══════════════════════════" .. colors.reset)
-       print(colors.cyan .. colors.bright .. "═══  " .. colors.green .."检测到 Windows 10".. colors.reset .. colors.cyan .. colors.bright .. "  ══" .. colors.reset)
-       print(colors.cyan .. colors.bright .. "══════════════════════════" .. colors.reset)
-   elseif result:find("Windows 11") then
-       print(colors.cyan .. colors.bright .. "══════════════════════════" .. colors.reset)
-       print(colors.cyan .. colors.bright .. "═══  " .. colors.green .."检测到 Windows 11".. colors.reset .. colors.cyan .. colors.bright .. "  ══" .. colors.reset)
-       print(colors.cyan .. colors.bright .. "══════════════════════════" .. colors.reset)
-       print()
-       delay.sleep(1)
-       print(colors.red .. colors.bright .."当前系统控制台可能会被终端替代".. colors.reset)
-       print()
-       print(colors.red .. colors.bright .."推荐前往设置→开发者选项修改为控制台".. colors.reset)
-       delay.sleep(2)
-   elseif result:find("Windows 7") then
-       print("══════════════════════════")
-       print("═══  ".."检测到 Windows 7".."  ══")
-       print("══════════════════════════")
-       print()
-       print("当前助手不支持 Windows 7 系统。")
-       print("请下载适用于 Windows 7 的专用工具箱。")
-       print()
-       print("按下任意键退出...")
-       os.execute("pause >nul")  -- 等待用户按下任意键
-       os.exit()  -- 退出脚本
-   else
-       print("无法确定 Windows 版本")
-   end
-    print()
-    print()
-    print("请稍后，助手正在优化运行环境")
-    delay.sleep(6)
-	print()
-	--当前版本省略一些注册表参数
-    print(colors.green .."注册表编辑器:参数已保存!".. colors.reset)
-    delay.sleep(6)
-    -- 删除 dyc 文件
+    -- 使用记事本打开配置文件
+    print("检测到助手第一次运行")
+    print("正在打开配置文件，请手动编辑...")
+	delay.sleep(4)
+    os.execute('start notepad.exe helper.ini')
+    
+    -- 删除标志文件，避免重复提示
     os.remove(flag_file)
-    print ()
-    print (colors.green .."完成".. colors.reset)
-    delay.sleep(3)
-    os.execute("cls")
+	delay.sleep(2)
+	os.exit(1)
 end
 
 local function print_tips()
@@ -183,9 +141,10 @@ if not should_check_update() then
 end
     local version_urls = {
         "https://punguin.pages.dev/helper",      --来自Cloudflare提供的免费服务
-        --"http://47.239.84.169/helper"            --企鹅官网
+        --"http://47.239.84.169/helper",            --企鹅官网
+		"http://127.0.0.1:0721/helper"                   --编译时用于调试
     } -- 服务器列表
-    local local_version = "4.9" -- 替换为本地的版本号
+    local local_version = "5.0" -- 替换为本地的版本号
     local temp_version_file = "version.ini" -- 临时版本文件
     local cloud_version = nil  -- 注意,在编译时需要将ip进行单独加密
 

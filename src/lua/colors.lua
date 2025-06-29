@@ -10,70 +10,115 @@
 -- 联系我们：3618679658@qq.com
 -- ChatGPT协助制作编写
 
+-- 根据 helper.ini 控制颜色启用与反色模式
+-- 支持 #[Enable_Colors] 表示关闭颜色输出
+
+local function load_color_config()
+    local config = { enable = false, reverse = false }
+    local f = io.open("helper.ini", "r")
+    if not f then return config end
+
+    local in_section = false
+    local section_enabled = false
+
+    for line in f:lines() do
+        line = line:match("^%s*(.-)%s*$")  -- 去除前后空格
+
+        -- 检查是否进入指定段落
+        if line:lower() == "[enable_colors]" then
+            in_section = true
+            section_enabled = true
+        elseif line:lower() == "#[enable_colors]" then
+            in_section = false
+            section_enabled = false
+        elseif line:match("^%[.-%]$") then
+            in_section = false
+        elseif in_section and section_enabled then
+            local key, val = line:match("^(.-)=(.-)$")
+            if key and val then
+                key = key:lower():gsub("%s+", "")
+                val = val:match("^%s*(.-)%s*$")
+
+                if key == "reverse-color" then
+                    config.enable = true
+                    config.reverse = (val == "1")
+                end
+            end
+        end
+    end
+
+    f:close()
+    return config
+end
+
+local config = load_color_config()
+
+local function color_code(code, reverse_code)
+    if not config.enable then return "" end
+    if config.reverse and reverse_code then
+        return reverse_code
+    end
+    return code
+end
+
 local colors = {
     reset = "\27[0m",
 
-    -- 普通前景色
-    black = "\27[30m",
-    red = "\27[31m",
-    green = "\27[32m",
-    yellow = "\27[33m",
-    blue = "\27[34m",
-    magenta = "\27[35m",
-    cyan = "\27[36m",
-    white = "\27[37m",
+    black = color_code("\27[30m", "\27[97m"),
+    red = color_code("\27[31m", "\27[91m"),
+    green = color_code("\27[32m", "\27[92m"),
+    yellow = color_code("\27[33m", "\27[93m"),
+    blue = color_code("\27[34m", "\27[94m"),
+    magenta = color_code("\27[35m", "\27[95m"),
+    cyan = color_code("\27[36m", "\27[96m"),
+    white = color_code("\27[37m", "\27[30m"),
 
-    -- 亮色前景色
-	bright = "\27[1m",          --仅亮色
-    bright_black = "\27[90m",
-    bright_red = "\27[91m",
-    bright_green = "\27[92m",
-    bright_yellow = "\27[93m",
-    bright_blue = "\27[94m",
-    bright_magenta = "\27[95m",
-    bright_cyan = "\27[96m",
-    bright_white = "\27[97m",
+    bright = color_code("\27[1m"),
+    bright_black = color_code("\27[90m", "\27[37m"),
+    bright_red = color_code("\27[91m", "\27[31m"),
+    bright_green = color_code("\27[92m", "\27[32m"),
+    bright_yellow = color_code("\27[93m", "\27[33m"),
+    bright_blue = color_code("\27[94m", "\27[34m"),
+    bright_magenta = color_code("\27[95m", "\27[35m"),
+    bright_cyan = color_code("\27[96m", "\27[36m"),
+    bright_white = color_code("\27[97m", "\27[30m"),
 
-    -- 加粗
-    bold = "\27[1m",
-    bold_black = "\27[1;30m",
-    bold_red = "\27[1;31m",
-    bold_green = "\27[1;32m",
-    bold_yellow = "\27[1;33m",
-    bold_blue = "\27[1;34m",
-    bold_magenta = "\27[1;35m",
-    bold_cyan = "\27[1;36m",
-    bold_white = "\27[1;37m",
+    bold = color_code("\27[1m"),
+    bold_black = color_code("\27[1;30m", "\27[1;97m"),
+    bold_red = color_code("\27[1;31m", "\27[1;91m"),
+    bold_green = color_code("\27[1;32m", "\27[1;92m"),
+    bold_yellow = color_code("\27[1;33m", "\27[1;93m"),
+    bold_blue = color_code("\27[1;34m", "\27[1;94m"),
+    bold_magenta = color_code("\27[1;35m", "\27[1;95m"),
+    bold_cyan = color_code("\27[1;36m", "\27[1;96m"),
+    bold_white = color_code("\27[1;37m", "\27[1;30m"),
 
-    -- 带下划线
-    underline_black = "\27[4;30m",
-    underline_red = "\27[4;31m",
-    underline_green = "\27[4;32m",
-    underline_yellow = "\27[4;33m",
-    underline_blue = "\27[4;34m",
-    underline_magenta = "\27[4;35m",
-    underline_cyan = "\27[4;36m",
-    underline_white = "\27[4;37m",
+    underline_black = color_code("\27[4;30m", "\27[4;97m"),
+    underline_red = color_code("\27[4;31m", "\27[4;91m"),
+    underline_green = color_code("\27[4;32m", "\27[4;92m"),
+    underline_yellow = color_code("\27[4;33m", "\27[4;93m"),
+    underline_blue = color_code("\27[4;34m", "\27[4;94m"),
+    underline_magenta = color_code("\27[4;35m", "\27[4;95m"),
+    underline_cyan = color_code("\27[4;36m", "\27[4;96m"),
+    underline_white = color_code("\27[4;37m", "\27[4;30m"),
 
-    -- 背景色
-    bg_black = "\27[40m",
-    bg_red = "\27[41m",
-    bg_green = "\27[42m",
-    bg_yellow = "\27[43m",
-    bg_blue = "\27[44m",
-    bg_magenta = "\27[45m",
-    bg_cyan = "\27[46m",
-    bg_white = "\27[47m",
+    bg_black = color_code("\27[40m", "\27[107m"),
+    bg_red = color_code("\27[41m", "\27[101m"),
+    bg_green = color_code("\27[42m", "\27[102m"),
+    bg_yellow = color_code("\27[43m", "\27[103m"),
+    bg_blue = color_code("\27[44m", "\27[104m"),
+    bg_magenta = color_code("\27[45m", "\27[105m"),
+    bg_cyan = color_code("\27[46m", "\27[106m"),
+    bg_white = color_code("\27[47m", "\27[40m"),
 
-    -- 亮色背景色
-    bg_bright_black = "\27[100m",
-    bg_bright_red = "\27[101m",
-    bg_bright_green = "\27[102m",
-    bg_bright_yellow = "\27[103m",
-    bg_bright_blue = "\27[104m",
-    bg_bright_magenta = "\27[105m",
-    bg_bright_cyan = "\27[106m",
-    bg_bright_white = "\27[107m",
+    bg_bright_black = color_code("\27[100m", "\27[47m"),
+    bg_bright_red = color_code("\27[101m", "\27[41m"),
+    bg_bright_green = color_code("\27[102m", "\27[42m"),
+    bg_bright_yellow = color_code("\27[103m", "\27[43m"),
+    bg_bright_blue = color_code("\27[104m", "\27[44m"),
+    bg_bright_magenta = color_code("\27[105m", "\27[45m"),
+    bg_bright_cyan = color_code("\27[106m", "\27[46m"),
+    bg_bright_white = color_code("\27[107m", "\27[40m"),
 }
 
 return colors
