@@ -10,6 +10,9 @@
 -- 联系我们：3618679658@qq.com
 -- ChatGPT协助制作编写
 
+local colors = require("lua\\colors") -- ANSI颜色码库
+local delay = require("lua\\sleep") -- 倒计时操作
+
 -- 设置标题终端与定义窗口大小
 os.execute("title 企鹅WIFI助手_WEB烧写工具")
 os.execute("mode con: cols=66 lines=35")
@@ -26,10 +29,10 @@ end
 -- 定义 check_file 函数
 local function check_file()
     print(colors.blue .. colors.bright .. "搜寻设备..." .. colors.reset)
-    delay(4)
+    delay.sleep(4)
 
     -- 运行 adb devices 命令并捕获返回结果
-    local adbDevicesCommand = "adb devices"
+    local adbDevicesCommand = "bin\\adb devices"
     local devicesOutput = executeADBCommand(adbDevicesCommand)
 
     -- 检查是否有设备连接
@@ -40,7 +43,7 @@ local function check_file()
     end
 
     -- 运行 adb touch 命令并捕获返回结果
-    local adbCommand = "adb shell touch /etc_ro/web/test_file"
+    local adbCommand = "bin\\adb shell touch /etc_ro/web/test_file"
     local output = executeADBCommand(adbCommand)
 
     -- 检查返回结果是否包含 "Read-only file system"
@@ -99,7 +102,7 @@ end
 -- 备份 /etc_ro/web 文件夹到指定目录
 local function backupWebFolder(tempBackupPath)
     print(colors.green .. "正在备份设备后台WEB文件夹..." .. colors.reset)
-    local backupCommand = "adb pull /etc_ro/web \"" .. tempBackupPath .. "\""
+    local backupCommand = "bin\\adb pull /etc_ro/web \"" .. tempBackupPath .. "\""
     return executeADBCommand(backupCommand)
 end
 
@@ -154,11 +157,11 @@ end
 
 local function up_web()
 -- 删除设备上原有的 /etc_ro/web 文件夹
-local deleteCommand = "adb shell rm -rf /etc_ro/web"
+local deleteCommand = "bin\\adb shell rm -rf /etc_ro/web"
 os.execute(deleteCommand)
 
 -- 上传整个文件夹到设备
-local uploadCommand = string.format("adb push \"%s\" /etc_ro/web", folderPath)
+local uploadCommand = string.format("bin\\adb push \"%s\" /etc_ro/web", folderPath)
 os.execute(uploadCommand)
 
 print("上传完成,设备web已替换!")

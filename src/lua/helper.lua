@@ -133,7 +133,7 @@ local function install_drive() --三合一驱动安装
   print(colors.cyan .. colors.bright .. "════════════════════════════════════════════════════════════════════════════════════════════════════════════════" .. colors.reset)
   print("请选择要安装的驱动(没安过建议全安)：")
   print()
-  print(colors.cyan .. colors.bright .. "           1.通用安卓ADB驱动    2.中兴微专用lnterface驱动    3.移远的ASR专用驱动     4.紫光SPD通用驱动" .. colors.reset)
+  print(colors.cyan .. colors.bright .. "           1.通用安卓ADB驱动      2.中兴微驱动      3.移远的ASR专用驱动       4.紫光SPD通用驱动" .. colors.reset)
   print()
   print(colors.red .. colors.bright .."提示:中兴驱动为秒安驱动,安装过程只会弹出cmd。如果安装成功则会直接关闭。".. colors.reset)
   print()
@@ -142,6 +142,10 @@ local function install_drive() --三合一驱动安装
     if drive_selection == "1" then
      os.execute("start file\\drive\\vivo-drive.exe")
     elseif drive_selection == "2" then
+     os.execute("start file\\drive\\ZXIC_Develop_Driver.exe")
+	 print()
+	 io.write(colors.green .. "按任意键开始安装补充驱动......" .. colors.reset)
+	 io.read()
      os.execute("start file\\drive\\zxicser.exe")
     elseif drive_selection == "3" then
      os.execute("start file\\drive\\Quectel_LTE_Windows_USB_Driver.exe")
@@ -338,7 +342,24 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	print()
 	os.execute("pause")  -- 等待用户按任意键继续
 	elseif selection == "2" then
+	        print(colors.blue .. colors.bright .."挂载读写..." .. colors.reset)
+            os.execute("bin\\adb shell mount -o remount,rw /")
+            -- 尝试在 /sbin/ 中创建 test 文件
+		    print()
+	     	print(colors.blue .. colors.bright .."检查文件系统..." .. colors.reset)
+            local createFileCmd = "bin\\adb shell touch /sbin/test 2>&1" -- 捕获错误输出
+            local handle = io.popen(createFileCmd)
+            local result = handle:read("*a")
+            handle:close()
+
+            -- 检查输出中是否包含"Read-only"
+            if result:find("Read") then
+		       print(colors.red .. "您的设备系统只读,请尝试编程器" .. colors.reset)
+			   print()
+			   os.execute("pause")
+            else
             -- 修改设备
+			--os.execute("pause") -- 调试时使用,防止错误的修改
 			print(colors.green .. colors.bright .."已挂载根目录为可读写，正在停止厂家服务...".. colors.reset)
 			os.execute("bin\\adb shell killall fota_Update")
 			os.execute("bin\\adb shell killall fota_upi")
@@ -395,6 +416,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	        print()
 	        print()
 	        os.execute("pause")  -- 等待用户按任意键继续
+		end
 	end
  end
 
@@ -582,7 +604,7 @@ end
 	elseif choice == "H" then
         mifi_Studio()
 	elseif choice == "01" then
-	    os.execute("start lua\\app_machine-material.lua")
+	    os.execute("start bin\\lua54 lua\\app_machine-material.lua")
 	elseif choice == "02" then
         set_adb()
 	elseif choice == "03" then
