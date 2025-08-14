@@ -11,8 +11,8 @@
 -- ChatGPT协助制作编写
 
 -- 设置标题终端与定义窗口大小
-os.execute("title 企鹅WIFI助手__当前版本: 5.0 ,正在检测版本")
-os.execute("mode con: cols=53 lines=15")
+os.execute("title 企鹅WIFI助手 当前版本: 5.1 ,正在检测版本")
+os.execute("mode con: cols=60 lines=15")
 
 -- 引入外部库
 local path = require("lua\\path") -- 工具路径变量库
@@ -36,11 +36,9 @@ if file then
     print("正在打开配置文件，请手动编辑...")
 	delay.sleep(4)
     os.execute('start notepad.exe helper.ini')
-    
     -- 删除标志文件，避免重复提示
     os.remove(flag_file)
 	delay.sleep(2)
-	os.exit(1)
 end
 
 local function print_tips()
@@ -64,6 +62,27 @@ local function wait_for_user_input()
 	print(colors.red .. "每次更新都有新的好功能,还是建议您升级的呢" .. colors.reset)
 	delay.sleep(5)
 end
+-- 新增：检测Build版本通道
+local function get_version_path()
+    local default_path = "helper"  -- 默认路径
+    local file = io.open("helper.ini", "r")
+    if not file then
+        return default_path  -- 配置文件不存在，使用默认
+    end
+    for line in file:lines() do
+        -- 检测未注释的[Build version channel]
+        if line:match("^%s*%[Build version channel%]%s*$") then
+            file:close()
+            return "helper-build"  -- 使用Build通道路径
+        -- 检测注释的#[Build version channel]
+        elseif line:match("^%s*#%s*%[Build version channel%]%s*$") then
+            file:close()
+            return default_path  -- 使用默认路径
+        end
+    end
+    file:close()
+    return default_path  -- 未找到相关配置，使用默认
+end
 
 -- 获取云端版本信息
 local function check_version()
@@ -85,7 +104,6 @@ local function read_refresh_cycle(file_path)
     print("未在 helper.ini 中找到 refresh cycle 参数，将立即进行版本检测。")
     return nil
 end
-
 -- 从 version.ini 中获取上次检测时间（格式：review time: YYYY-MM-DD）
 local function read_last_check_time(file_path)
     local file = io.open(file_path, "r")
@@ -104,7 +122,6 @@ local function read_last_check_time(file_path)
     print("未在 version.ini 中找到 review time 记录，将立即进行版本检测。")
     return nil
 end
-
 -- 判断是否需要检测更新
 local function should_check_update()
     local cycle = read_refresh_cycle("helper.ini") -- 天数
@@ -112,7 +129,6 @@ local function should_check_update()
     if not cycle or not last_time then
         return true -- 缺文件/参数/时间信息，强制检测
     end
-
     local now = os.time()
     local diff_days = os.difftime(now, last_time) / (60 * 60 * 24) -- 秒转天
     if diff_days >= cycle then
@@ -124,30 +140,29 @@ else
         print(string.format("上次检测在 %.1f 天前，未达到 %d 天的更新周期", diff_days, cycle))
 		print(string.format("跳过版本检测。", diff_days, cycle))
     end
-
     -- 计算下次检测时间
     local next_time = last_time + cycle * 24 * 60 * 60
     local next_date = os.date("%Y-%m-%d", next_time)
     print("预计将在 " .. next_date .. " 后再次检测。")
-
     return false
 end
 end
-
 -- 若不需要检测，返回
 if not should_check_update() then
     delay.sleep(2)
     return
 end
+
+    -- 新增：通过get_version_path()获取实际拉取路径
+    local version_path = get_version_path()
     local version_urls = {
-        "https://punguin.pages.dev/helper",      --来自Cloudflare提供的免费服务
-        --"http://47.239.84.169/helper",            --企鹅官网
-		"http://127.0.0.1:0721/helper"                   --编译时用于调试
+        "https://punguin.pages.dev/" .. version_path,      -- 拼接路径
+        --"http://47.239.84.169/" .. version_path,            -- 拼接路径
+		"http://127.0.0.1:0721/" .. version_path                   -- 拼接路径
     } -- 服务器列表
-    local local_version = "5.0" -- 替换为本地的版本号
+    local local_version = "5.1" -- 替换为本地的版本号
     local temp_version_file = "version.ini" -- 临时版本文件
     local cloud_version = nil  -- 注意,在编译时需要将ip进行单独加密
-
     -- 从版本文件中提取云端版本号
     local function get_version_from_html(file_path)
         local file = io.open(file_path, "r")
@@ -155,7 +170,7 @@ end
             return nil
         end
         for line in file:lines() do
-            local version = line:match("%d.%d") -- "%d.%d"为版本号格式,对应的版本为X.X(数字格式)
+            local version = line:match("%d+%.%d+[%w%-]*") -- "%d.%d"为版本号格式,对应的版本为X.X(数字格式)
             if version then
                 file:close()
                 return version
@@ -164,7 +179,6 @@ end
         file:close()
         return nil
     end
-
     -- 检查文件是否有效
     local function is_file_valid(file_path)
         local file = io.open(file_path, "r")
@@ -175,11 +189,9 @@ end
         file:close()
         return content and #content > 0 and not content:find("404") -- 检查内容是否包含404
     end
-
     -- 尝试从每个服务器下载版本文件
     for _, url in ipairs(version_urls) do
         -- 使用curl下载版本文件
-        --os.execute(string.format('bin\\curl -l -o %s %s >nul 2>nul', temp_version_file, url))
 		os.execute(string.format('"%s" -l -o %s %s >nul 2>nul', path.curl, temp_version_file, url))
         
         if is_file_valid(temp_version_file) then
@@ -189,9 +201,7 @@ end
             end
         end
     end
-
     --os.remove(temp_version_file) -- 删除临时版本文件
-
     -- 输出版本信息
     if cloud_version then
 	-- 获取当前时间并写入版本文件
@@ -203,14 +213,12 @@ local function write_check_time(file_path)
         file:close()
     end
 end
-
 write_check_time(temp_version_file)
         print(colors.bright .. "最新版本: " .. cloud_version .. "  当前版本: " .. local_version .. colors.reset .. "\n")
         print(colors.blue .. colors.bright .. "若云端有新版本,请进入助手后输入'new'下载\n" .. colors.reset)
         print()
         print("笑点解析:还有人现在在用企鹅助手1.2")
 		print()
-
         -- 判断是否需要等待用户输入
         if cloud_version > local_version then
             wait_for_user_input()  -- 如果云端版本比本地版本高，等待用户输入
@@ -220,7 +228,6 @@ write_check_time(temp_version_file)
         print(colors.bright .. "无法获取云端版本\n" .. colors.reset)
     end
 end
-
 print_tips()
 check_version()
 print_start()

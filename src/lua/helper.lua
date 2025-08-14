@@ -12,7 +12,7 @@
 
 
 -- 设置标题终端与定义窗口大小
-os.execute("title 企鹅WIFI助手(ChatGPT协助制作编写)                      当前版本: 5.0                     作者QQ:3618679758，官方QQ群:725700912 ")
+os.execute("title 企鹅WIFI助手(ChatGPT协助制作编写)                      当前版本: 5.1         作者QQ:3618679758，官方QQ群:725700912 ")
 os.execute("mode con: cols=113 lines=32")
 
 -- 引入外部库
@@ -83,7 +83,7 @@ end
 
 -- 定义一个函数来获取云端版本信息
 local function check_version()
-    local local_version = "5.0"  -- 替换为本地的版本号
+    local local_version = "5.1"  -- 替换为本地的版本号
     local temp_version_file = "version.ini" -- 临时版本文件
     
     -- 从版本文件中提取云端版本号
@@ -93,7 +93,7 @@ local function check_version()
             return nil
         end
         for line in file:lines() do
-            local version = line:match("%d.%d") -- "%d.%d"为版本号格式
+            local version = line:match("%d+%.%d+[%w%-]*") -- "%d.%d"为版本号格式,对应的版本为X.X(数字格式)
             if version then
                 file:close()
                 return version
@@ -112,6 +112,23 @@ local function check_version()
     else
         print(colors.bright .."无法获取云端版本" .. colors.reset)
     end
+end
+
+-- 检查是否有 adb 设备连接
+local function is_adb_device_connected()
+	local check = io.popen("bin\\adb get-state")
+	local state = check:read("*a")
+	check:close()
+
+	if not state:match("device") then -- 当没有设备时就输出
+	    print()
+		print(colors.red .."[错误] 未检测到ADB设备，请连接设备后重试。".. colors.reset)
+		print(colors.green .."提示:如果设备处于连接但离线模式，设备adb也是不可用。".. colors.reset)
+		print()
+		io.read()  -- 获取用户输入
+		os.execute("bin\\lua54 lua\\helper.lua")
+		io.read()  -- 获取用户输入
+	end
 end
 
 local function mtd_check() --显示设备MTD状态
@@ -185,7 +202,11 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
       os.execute('bin\\curl "http://'..ipAddress..'/goform/goform_set_cmd_process?goformId=SET_DEVICE_MODE&debug_enable=2"')
       os.execute('bin\\curl "http://'..ipAddress..'/goform/goform_set_cmd_process?goformId=SET_DEVICE_MODE&debug_enable=1"')
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1"')
+	  -- 5.1整合Qrzl密码
+	  print()
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1&password=MM888@Qiruizhilian20241202"')
+	  print()
+      os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1&password=159258@Qiruizhilian20241202"')
       print(colors.green .. colors.bright .."\n稍后重启设备(5秒)....." .. colors.blue .. colors.bright)
       delay.sleep(5)
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=REBOOT_DEVICE"')
@@ -256,26 +277,12 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
  
  local function ufi_nv_set() --通过设置标准NV参数来优化设备
  print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════════════════════════════════════════════════════════════════════════" .. colors.reset)
- local check = io.popen("bin\\adb get-state")
-	local state = check:read("*a")
-	check:close()
-
-	if not state:match("device") then -- 当没有设备时就输出
-	    print()
-		print(colors.red .."[错误] 未检测到ADB设备，请连接设备后重试。".. colors.reset)
-		print(colors.green .."提示:如果设备处于连接但离线模式，设备adb也是不可用。".. colors.reset)
-		print()
-		print("按任意键退出...")
-		io.read()  -- 获取用户输入
-		os.execute("bin\\lua54 lua\\helper.lua")
-	end
- -- 打印操作选项菜单
   print()
   print(colors.cyan .. colors.bright .."使用小贴士:".. colors.reset .. colors.green .. "在去控的时候如果设备是jffs2等系统，那么工具会尝试将远控程序铲除。")
   print()
   print(colors.cyan .. colors.bright .." =------".. colors.magenta .. colors.bright .."选择模式" .. colors.cyan .. colors.bright .."------------------------------------------------------------------------------------------------=")
   print(colors.cyan .. colors.bright .." =                                                                                                              =")
-  print(colors.cyan .. colors.bright .." =    ".. colors.reset .. colors.yellow .."1. SZXF通用优化      2.ZTE本家优化(SZXK)                                                                  ".. colors.cyan ..colors.bright .."=")
+  print(colors.cyan .. colors.bright .." =    ".. colors.reset .. colors.yellow .."1. SZXF通用优化      2.ZTE本家优化(SZXK)     3.易连通用优化(ALK)                                          ".. colors.cyan ..colors.bright .."=")
   print(colors.cyan .. colors.bright .." =                                                                                                              =")
   print(colors.cyan .. colors.bright .." =    ".. colors.reset .. colors.yellow .."                                                                                                          ".. colors.cyan ..colors.bright .."=")
   print(colors.cyan .. colors.bright .." =                                                                      以后会陆续支持更多设备,请期待助手ota    =")
@@ -287,6 +294,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
   print(colors.reset)
   -- 筛选变量数据并执行对应操作
     if selection == "1" then
+	is_adb_device_connected()
 	print()
 	print("挂载读写")
 	os.execute("bin\\adb shell mount -o remount,rw /")
@@ -330,7 +338,6 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	print(colors.blue .."正在给设备加水印".. colors.reset)
 	os.execute([[bin\\adb shell "echo 'copyright = 此设备软件由 &copy; 企鹅君Punguin 修改' >> /etc_ro/web/i18n/Messages_zh-cn.properties"]])
 	os.execute([[bin\\adb shell "echo 'copyright = Software by: &copy; Penguin Revise' >> /etc_ro/web/i18n/Messages_en.properties"]])
-	os.execute([[bin\\adb shell "echo 'killall zte_de &' >> /etc/ro"]])
 	os.execute([[bin\\adb shell "echo 'nv set cr_version=SZXF-Punguin_P001-20250601 &' >> /etc/ro"]])
 	print(colors.green .. colors.bright .."出现Read-only file system是正常的".. colors.reset)
 	print()
@@ -342,6 +349,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	print()
 	os.execute("pause")  -- 等待用户按任意键继续
 	elseif selection == "2" then
+	  is_adb_device_connected()
 	        print(colors.blue .. colors.bright .."挂载读写..." .. colors.reset)
             os.execute("bin\\adb shell mount -o remount,rw /")
             -- 尝试在 /sbin/ 中创建 test 文件
@@ -386,7 +394,6 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	        print(colors.blue .."正在给设备加水印".. colors.reset)
 			os.execute([[bin\\adb shell "echo 'copyright = 此设备软件由 &copy; 企鹅君Punguin 修改' >> /etc_ro/web/i18n/Messages_zh-cn.properties"]])
 			os.execute([[bin\\adb shell "echo 'copyright = Software by: &copy; Penguin Revise' >> /etc_ro/web/i18n/Messages_en.properties"]])
-			os.execute([[bin\\adb shell "echo 'killall zte_de &' >> /etc/ro"]])
 			os.execute([[bin\\adb shell "echo 'nv set cr_version=SZXK-Punguin_P049U-20250601 &' >> /etc/ro"]])
 			print(colors.green .. colors.bright .."出现Read-only file system是正常的".. colors.reset)
 			print()
@@ -417,8 +424,180 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	        print()
 	        os.execute("pause")  -- 等待用户按任意键继续
 		end
-	end
- end
+	elseif selection == "3" then
+		-- 简化命令调用封装
+		local function run(cmd)
+			os.execute(cmd)
+		end
+
+		local function adb(cmd)
+			run("bin\\adb " .. cmd)
+		end
+
+		local function ateer(cmd)
+			run("bin\\ATeer " .. cmd)
+		end
+
+		-- 检查 ADB 状态
+		local function get_adb_state()
+			local handle = io.popen("bin\\adb devices 2>nul")
+			local result = handle:read("*a")
+			handle:close()
+
+			local serial, state = result:match("(%d+%S*)%s+(%S+)")
+			if serial and state then
+				return state
+			else
+				return nil
+			end
+		end
+
+		-- 唤醒 adbd
+		local function wake_adb()
+			print("尝试唤醒设备 ADB...")
+			ateer("at+shell=adbd")
+		end
+
+		-- 检查系统是否为只读
+		local function is_system_readonly()
+			local tmp_output_file = "adb_tmp.txt"
+			adb("shell mount -o remount,rw /")
+			run('bin\\adb shell "touch /sbin/test" 2>&1 > ' .. tmp_output_file)
+
+			local file = io.open(tmp_output_file, "r")
+			if not file then
+				print("无法读取临时输出文件。")
+				return true -- 出错时默认只读
+			end
+
+			local output = file:read("*a")
+			file:close()
+			os.remove(tmp_output_file)
+
+			return output:lower():match("read") ~= nil
+		end
+
+		-- 执行只读系统的处理逻辑
+		local function handle_readonly()
+		  print()
+			print(colors.green .. colors.bright .."系统为只读，正在执行只读系统的专属代码...".. colors.reset)
+			print(colors.yellow .."正在优化设备nv配置...".. colors.reset)
+			adb("shell nv set dm_enable=0")
+			adb("shell nv set mqtt_enable=0")
+			adb("shell nv set tc_enable=0")
+			adb("shell nv set tc_downlink=")
+			adb("shell nv set tc_uplink=")
+			adb("shell nv set fota_updateMode=0")
+			adb("shell nv set fota_version_delta_id=")
+			adb("shell nv set fota_version_delta_url=")
+			adb("shell nv set fota_version_name=")
+			adb("shell nv set fota_upgrade_result_internal=")
+			adb("shell nv set fl_autoswitchsim=0")
+			adb("shell nv set alk_sim_select=0")
+			adb("shell nv set path_sh=/etc_rw/sbin")
+			adb("shell nv save")
+			print(colors.green .. colors.bright .."nv编辑器：参数已保存".. colors.reset)
+			print()
+			adb("shell mkdir -p /etc_rw/sbin")
+			adb("shell cp /sbin/*.sh /etc_rw/sbin/")
+			print(colors.yellow .."正在修改设备文件".. colors.reset)
+			adb([[shell "echo 'killall iccid_check' >> /etc_rw/sbin/global.sh"]])
+			adb([[shell "echo 'killall mqtt_client' >> /etc_rw/sbin/global.sh"]])
+			adb([[shell "echo 'killall vsim' >> /etc_rw/sbin/global.sh"]])
+			adb([[shell "echo 'killall rmc' >> /etc_rw/sbin/global.sh"]])
+			adb("shell reboot")
+			print()
+			print()
+			print(colors.red .."修改完成，恢复出厂将会丢失更改，不要恢复出厂".. colors.reset)
+			os.execute("pause")  -- 等待用户按任意键继续
+		end
+
+		-- 执行可读写系统的处理逻辑
+		local function handle_rw()
+			print(colors.green .. colors.bright .."系统可读写，正在执行可读写系统的专属代码...".. colors.reset)
+			print(colors.yellow .."正在优化设备nv配置...".. colors.reset)
+			adb([[shell "echo 'tc_enable=0' >> /etc_ro/default/default_parameter_sys"]])
+			adb([[shell "echo 'alk_sim_select=0' >> /etc_ro/default/default_parameter_user"]])
+			adb([[shell "echo 'fota_updateMode=0' >> /etc_ro/default/default_parameter_user"]])
+			adb("shell nv set tc_enable=0")
+			adb("shell nv setro alk_server=0.1.2.3")
+			adb("shell nv save")
+			print(colors.green .. colors.bright .."nv编辑器：参数已保存".. colors.reset)
+			print(colors.blue .."正在给设备加水印".. colors.reset)
+			adb([[shell "echo 'copyright = 此设备软件由 &copy; 企鹅君Punguin 修改' >> /etc_ro/web/i18n/Messages_zh-cn.properties"]])
+			adb([[shell "echo 'copyright = Software by: &copy; Penguin Revise' >> /etc_ro/web/i18n/Messages_en.properties"]])
+			adb([[shell "echo 'nv set cr_version=ALK-Punguin_P049U-20250813 &' >> /etc/ro"]])
+			print()
+			print(colors.yellow .."正在修改设备文件".. colors.reset)
+			adb("shell rm -rf bin/iccid_check")
+			adb("shell rm -rf bin/mqtt_client")
+			adb("shell rm -rf bin/vsim")
+			adb("shell rm -rf bin/rmc")
+			adb("shell rm -rf /sbin/fl_set_iptables.sh")
+			print(colors.red .."修改完成，操作已固化，设备可以恢复出厂".. colors.reset)
+			os.execute("pause")  -- 等待用户按任意键继续
+		end
+
+		-- 检查系统可读写性并执行处理
+		local function check_system_rw()
+			print(colors.yellow .."正在检测设备系统是否为只读...".. colors.reset)
+			if is_system_readonly() then
+				print(colors.green .. colors.bright .."检测结果：系统为只读。".. colors.reset)
+				print()
+				handle_readonly()
+			else
+				print(colors.green .. colors.bright .."检测结果：系统可读写。".. colors.reset)
+				print()
+				handle_rw()
+			end
+		end
+
+		-- 主逻辑执行
+		local function main()
+			local state = get_adb_state()
+
+			if not state then
+				print(colors.red .."未检测到任何设备，请先开启 ADB 或连接设备。".. colors.reset)
+				run("pause")
+				return
+			end
+
+			if state == "device" then
+				print(colors.green .. colors.bright .."设备已连接。".. colors.reset)
+				print()
+				check_system_rw()
+				run("pause")
+				return
+			end
+
+			if state == "offline" then
+				print(colors.yellow .."检测到设备状态为 offline。".. colors.reset)
+				io.write(colors.cyan .. colors.bright .."是否唤醒设备的 ADB？(y/n): ".. colors.reset)
+				local choice = io.read()
+				if choice:lower() == "y" then
+					wake_adb()
+					local new_state = get_adb_state()
+					if new_state == "device" then
+						print(colors.green .. colors.bright .."设备已成功上线，ADB 正常。".. colors.reset)
+						check_system_rw()
+					else
+						print(colors.red .."设备仍为 offline，可能需要手动检查或重启设备。".. colors.reset)
+					end
+				else
+					print(colors.yellow .."此设备未进行任何修改。".. colors.reset)
+				end
+				run("pause")
+				return
+			end
+
+			print(colors.yellow .."未知设备状态: " .. state .. colors.reset)
+			run("pause")
+		end
+
+		main()
+	end -- selection == "3"
+end
+
 
 -- 打印选项
 local function uisoc()
@@ -481,7 +660,7 @@ end
 	io.write(colors.green .. "请输入数字并按 Enter 键: " .. colors.reset)
     local user_Studio_selection = io.read()
         if user_Studio_selection == "1" then
-        os.execute("start file\\ZXIC-RomKit\\_ADB一键提取固件.bat")
+        os.execute("start conhost.exe file\\ZXIC-RomKit\\_ADB一键提取固件.bat")
         elseif user_Studio_selection == "2" then
 		os.execute("explorer file\\ZXIC-RomKit")
         end
@@ -586,17 +765,17 @@ end
     io.write(colors.green .. "请输入并按Enter键: " .. colors.reset) --提示用户输入
     local choice = io.read() --捕获用户输入
     if choice == "A" then
-        os.execute("start bin\\lua54 lua\\app_zmtd-extract.lua") --提取分区的脚本
+        os.execute("start conhost.exe bin\\lua54 lua\\app_zmtd-extract.lua") --提取分区的脚本
     elseif choice == "B" then
 		os.execute("cls")
-		os.execute("start file\\dongle_fun\\dongle_fun.bat") --调用dongle_fun的Bat
+		os.execute("start conhost.exe file\\dongle_fun\\dongle_fun.bat") --调用dongle_fun的Bat
     elseif choice == "C" then
-        os.execute("start bin\\lua54 lua\\app_zmtd-brusque.lua")
+        os.execute("start conhost.exe bin\\lua54 lua\\app_zmtd-brusque.lua")
     elseif choice == "D" then
         mtd_check()
 		os.execute("pause")
     elseif choice == "E" then
-        os.execute("start bin\\lua54 lua\\app_zfile-web.lua")
+        os.execute("start conhost.exe bin\\lua54 lua\\app_zfile-web.lua")
 	elseif choice == "F" then
         ufi_nv_set()
 	elseif choice == "G" then
@@ -604,7 +783,7 @@ end
 	elseif choice == "H" then
         mifi_Studio()
 	elseif choice == "01" then
-	    os.execute("start bin\\lua54 lua\\app_machine-material.lua")
+	    os.execute("start conhost.exe bin\\lua54 lua\\app_machine-material.lua")
 	elseif choice == "02" then
         set_adb()
 	elseif choice == "03" then
@@ -634,7 +813,7 @@ end
 	elseif choice == "new" then
         os.execute('start "" "http://punguin.cn/web-helper"')
     elseif choice == "C" then
-         os.execute("start bin\\lua54 lua\\so.lua")
+         os.execute("start conhost.exe bin\\lua54 lua\\so.lua")
 	elseif choice == "RE" then
         os.execute("bin\\lua54 lua\\helper.lua")
 	elseif choice == "XZ" then

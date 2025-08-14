@@ -167,6 +167,7 @@ os.execute(uploadCommand)
 print("上传完成,设备web已替换!")
 end
 
+os.execute("bin\\adb shell mount -o remount,rw /")
 check_file() -- 检查设备是否允许读写
 file() -- 让用户托入文件
 Backup_web() -- 进行后台的备份
