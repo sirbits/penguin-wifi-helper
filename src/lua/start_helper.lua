@@ -1,7 +1,7 @@
 -- start_helper.lua
 -- 为企鹅WIFI助手主程序提供初始化与更新检测服务
--- 
--- 版权 (C) 2025 企鹅君Punguin
+--
+-- 版权 (C) 2025-2026 企鹅君Punguin
 --
 -- 本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版或（您选择的）任何后来的版本重新发布它和/或修改它。。
 -- 本程序的发布是希望它能起到作用。但没有任何保证；甚至没有隐含的保证。本程序的分发是希望它是有用的，但没有任何保证，甚至没有隐含的适销对路或适合某一特定目的的保证。 参见 GNU Affero通用公共许可证了解更多细节。
@@ -11,7 +11,7 @@
 -- ChatGPT协助制作编写
 
 -- 设置标题终端与定义窗口大小
-os.execute("title 企鹅WIFI助手 当前版本: 5.1 ,正在检测版本")
+os.execute("title 企鹅WIFI助手 当前版本: 5.2 ,正在检测版本")
 os.execute("mode con: cols=60 lines=15")
 
 -- 引入外部库
@@ -160,7 +160,7 @@ end
         --"http://47.239.84.169/" .. version_path,            -- 拼接路径
 		"http://127.0.0.1:0721/" .. version_path                   -- 拼接路径
     } -- 服务器列表
-    local local_version = "5.1" -- 替换为本地的版本号
+    local local_version = "5.2" -- 替换为本地的版本号
     local temp_version_file = "version.ini" -- 临时版本文件
     local cloud_version = nil  -- 注意,在编译时需要将ip进行单独加密
     -- 从版本文件中提取云端版本号

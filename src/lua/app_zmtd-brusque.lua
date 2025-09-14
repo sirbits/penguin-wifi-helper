@@ -1,7 +1,7 @@
 -- zmtd-brusque
 -- 企鹅WiFi助手 刷写器V2.1
 -- 
--- 版权 (C) 2025 企鹅君Punguin
+-- 版权 (C) 2025-2026 企鹅君Punguin
 --
 -- 本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版或（您选择的）任何后来的版本重新发布它和/或修改它。。
 -- 本程序的发布是希望它能起到作用。但没有任何保证；甚至没有隐含的保证。本程序的分发是希望它是有用的，但没有任何保证，甚至没有隐含的适销对路或适合某一特定目的的保证。 参见 GNU Affero通用公共许可证了解更多细节。
@@ -167,7 +167,7 @@ local function execute_flash()
 	print(colors.green .. colors.bright .."读懂了请再按两次回车，感谢配合！".. colors.reset)
     for i = 1, 2 do io.read() end
     print(colors.cyan .. colors.bright .."[".. colors.green .."√".. colors.cyan .. colors.bright .."]".. colors.green ..  colors.bright .."刷写流程正在进行，不要关闭本窗口，请耐心等待设备重启....".. colors.reset)
-    os.execute("bin\\adb shell ./mnt/userdata/temp/flash.sh &")
+    os.execute("bin\\adb shell /mnt/userdata/temp/flash.sh")
 	print()
     print(colors.cyan .. colors.bright .."[".. colors.red .."!".. colors.cyan .. colors.bright .."]".. colors.green ..  colors.bright .."设备刷写完成，请等待设备开机，感谢使用。".. colors.reset)
 	print(colors.green .. colors.bright .."机器插上闪一下灯关机就是砖了，请用编程器救回！".. colors.reset)

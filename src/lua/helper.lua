@@ -1,7 +1,7 @@
 -- helper.lua
 -- 企鹅WIFI助手 一个整合工具箱,让用户便携管理设备
 -- 
--- 版权 (C) 2025 企鹅君Punguin
+-- 版权 (C) 2025-2026 企鹅君Punguin
 --
 -- 本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版或（您选择的）任何后来的版本重新发布它和/或修改它。。
 -- 本程序的发布是希望它能起到作用。但没有任何保证；甚至没有隐含的保证。本程序的分发是希望它是有用的，但没有任何保证，甚至没有隐含的适销对路或适合某一特定目的的保证。 参见 GNU Affero通用公共许可证了解更多细节。
@@ -12,7 +12,7 @@
 
 
 -- 设置标题终端与定义窗口大小
-os.execute("title 企鹅WIFI助手(ChatGPT协助制作编写)                      当前版本: 5.1         作者QQ:3618679758，官方QQ群:725700912 ")
+os.execute("title 企鹅WIFI助手(ChatGPT协助制作编写)                      当前版本: 5.2        作者QQ:3618679758，官方QQ群:725700912 ")
 os.execute("mode con: cols=113 lines=32")
 
 -- 引入外部库
@@ -58,6 +58,17 @@ local function check_adb_status()
     end
 end
 
+-- nv 查询命令
+function get_nv_value(param)
+	local command = "bin\\adb shell nv get " .. param
+	local handle = io.popen(command)
+	local result = handle:read("*a")
+	handle:close()
+
+	local value = result:gsub("%s+", "")
+	return value
+end
+
 -- 封装检查串口连接的函数
 function check_serial()
     -- 检测系统上是否有可用的串口
@@ -83,7 +94,7 @@ end
 
 -- 定义一个函数来获取云端版本信息
 local function check_version()
-    local local_version = "5.1"  -- 替换为本地的版本号
+    local local_version = "5.2"  -- 替换为本地的版本号
     local temp_version_file = "version.ini" -- 临时版本文件
     
     -- 从版本文件中提取云端版本号
@@ -204,10 +215,14 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1"')
 	  -- 5.1整合Qrzl密码
 	  print()
+      os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1&password=coolfish666@Qiruizhilian20241202"')
+	  print()
+      os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1&password=xscmadmin888@Qiruizhilian20241202"')
+	  print()
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1&password=MM888@Qiruizhilian20241202"')
 	  print()
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SET_DEVICE_MODE&debug_enable=1&password=159258@Qiruizhilian20241202"')
-      print(colors.green .. colors.bright .."\n稍后重启设备(5秒)....." .. colors.blue .. colors.bright)
+	  print(colors.green .. colors.bright .."\n稍后重启设备(5秒)....." .. colors.blue .. colors.bright)
       delay.sleep(5)
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=REBOOT_DEVICE"')
       os.execute('bin\\curl "http://'..ipAddress..'/goform/goform_set_cmd_process?goformId=REBOOT_DEVICE"')
@@ -243,7 +258,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
       delay.sleep(3)
     elseif adb_selection == "5" then -- 这部分抄袭了ufitool
 	  print(colors.red .. colors.bright .."\n\n警告:该方式来源于Remo内部人员" .. colors.blue .. colors.bright)
-	  print(colors.red .. colors.bright .."仅适用于第四代机型以前的版本(即24年12月之前),其他版本估计会遇到错误" .. colors.blue .. colors.bright)
+	  print(colors.red .. colors.bright .."仅适用于第四代机型以前的版本(即24年6月之前),其他版本估计会遇到错误" .. colors.blue .. colors.bright)
 	  print("\n")
 	  print(colors.green .. colors.bright .."\n正在向系统发送请求....." .. colors.blue .. colors.bright)
 	  delay.sleep(2)
@@ -253,7 +268,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	  print(colors.green .. colors.bright .."\n检测到阻止,正在绕过....." .. colors.blue .. colors.bright)
 	  delay.sleep(3)
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=REMO_SIM_SELECT_R1865&isTest=false&sim_option_id=3&select_sim_mode=1"')
-	  print(colors.green .. colors.bright .."\n已找到临时APi,正在反向劫持adbd....." .. colors.blue .. colors.bright)
+	  print(colors.green .. colors.bright .."\n已找到临时APi,正在反向劫持debug mode....." .. colors.blue .. colors.bright)
 	  delay.sleep(2)
       os.execute('bin\\curl "http://'..ipAddress..'/reqproc/proc_post?goformId=SysCtlUtal&action=System_MODE&debug_enable=1"')
 	  delay.sleep(2)
@@ -275,14 +290,22 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
     end
  end
  
+ local intype = get_nv_value("zcgmi")
+ local fota_platform = get_nv_value("fota_platform")
  local function ufi_nv_set() --通过设置标准NV参数来优化设备
- print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════════════════════════════════════════════════════════════════════════" .. colors.reset)
+  print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════════════════════════════════════════════════════════════════════════" .. colors.reset)
   print()
+  if intype ~= "" then
+	  print(colors.yellow .. colors.bright .. "设备类型: ".. colors.blue .. intype .. colors.reset)
+      print()
+	else
+	  print()
+  end
   print(colors.cyan .. colors.bright .."使用小贴士:".. colors.reset .. colors.green .. "在去控的时候如果设备是jffs2等系统，那么工具会尝试将远控程序铲除。")
   print()
   print(colors.cyan .. colors.bright .." =------".. colors.magenta .. colors.bright .."选择模式" .. colors.cyan .. colors.bright .."------------------------------------------------------------------------------------------------=")
   print(colors.cyan .. colors.bright .." =                                                                                                              =")
-  print(colors.cyan .. colors.bright .." =    ".. colors.reset .. colors.yellow .."1. SZXF通用优化      2.ZTE本家优化(SZXK)     3.易连通用优化(ALK)                                          ".. colors.cyan ..colors.bright .."=")
+  print(colors.cyan .. colors.bright .." =    ".. colors.reset .. colors.yellow .."     1. SZXF通用优化       2.ZTE本家优化(SZXK)      3.易连通用优化(ALK)       4.格行V1.3降级V1.2          ".. colors.cyan ..colors.bright .."=")
   print(colors.cyan .. colors.bright .." =                                                                                                              =")
   print(colors.cyan .. colors.bright .." =    ".. colors.reset .. colors.yellow .."                                                                                                          ".. colors.cyan ..colors.bright .."=")
   print(colors.cyan .. colors.bright .." =                                                                      以后会陆续支持更多设备,请期待助手ota    =")
@@ -338,7 +361,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	print(colors.blue .."正在给设备加水印".. colors.reset)
 	os.execute([[bin\\adb shell "echo 'copyright = 此设备软件由 &copy; 企鹅君Punguin 修改' >> /etc_ro/web/i18n/Messages_zh-cn.properties"]])
 	os.execute([[bin\\adb shell "echo 'copyright = Software by: &copy; Penguin Revise' >> /etc_ro/web/i18n/Messages_en.properties"]])
-	os.execute([[bin\\adb shell "echo 'nv set cr_version=SZXF-Punguin_P001-20250601 &' >> /etc/ro"]])
+	os.execute([[bin\\adb shell "echo 'nv set cr_version=SZXF-Punguin_P001-20250601 &' >> /etc/rc"]])
 	print(colors.green .. colors.bright .."出现Read-only file system是正常的".. colors.reset)
 	print()
 	print()
@@ -394,7 +417,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 	        print(colors.blue .."正在给设备加水印".. colors.reset)
 			os.execute([[bin\\adb shell "echo 'copyright = 此设备软件由 &copy; 企鹅君Punguin 修改' >> /etc_ro/web/i18n/Messages_zh-cn.properties"]])
 			os.execute([[bin\\adb shell "echo 'copyright = Software by: &copy; Penguin Revise' >> /etc_ro/web/i18n/Messages_en.properties"]])
-			os.execute([[bin\\adb shell "echo 'nv set cr_version=SZXK-Punguin_P049U-20250601 &' >> /etc/ro"]])
+			os.execute([[bin\\adb shell "echo 'nv set cr_version=SZXK-Punguin_P049U-20250601 &' >> /etc/rc"]])
 			print(colors.green .. colors.bright .."出现Read-only file system是正常的".. colors.reset)
 			print()
 			print(colors.yellow .."正在修改设备文件".. colors.reset)
@@ -408,13 +431,13 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
             os.execute("bin\\adb shell rm -rf /sbin/start_update_app.sh")
             os.execute("bin\\adb shell rm -rf /bin/fota_Update")
             os.execute("bin\\adb shell rm -rf /bin/fota_upi")
-			os.execute([[bin\\adb shell "echo 'killall zte_de &' >> /etc/ro"]])
-            os.execute([[bin\\adb shell "echo 'killall ztede_timer &' >> /etc/ro"]])
-            os.execute([[bin\\adb shell "echo 'killall zte_mqtt_sdk &' >> /etc/ro"]])
+			os.execute([[bin\\adb shell "echo 'killall zte_de &' >> /etc/rc"]])
+            os.execute([[bin\\adb shell "echo 'killall ztede_timer &' >> /etc/rc"]])
+            os.execute([[bin\\adb shell "echo 'killall zte_mqtt_sdk &' >> /etc/rc"]])
 			print()
 			print(colors.yellow .."清理临时文件...".. colors.reset)
 			os.execute("bin\\adb shell rm -r -rf /bin/miniupnp")
-			os.execute("adb shell rm -r -rf /bin/gsmtty")
+			os.execute("bin\\adb shell rm -r -rf /bin/gsmtty")
 			os.execute("bin\\adb shell reboot")
 			print()
 			print(colors.green .. colors.bright .."完成,请等待设备开机".. colors.reset)
@@ -526,7 +549,7 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 			print(colors.blue .."正在给设备加水印".. colors.reset)
 			adb([[shell "echo 'copyright = 此设备软件由 &copy; 企鹅君Punguin 修改' >> /etc_ro/web/i18n/Messages_zh-cn.properties"]])
 			adb([[shell "echo 'copyright = Software by: &copy; Penguin Revise' >> /etc_ro/web/i18n/Messages_en.properties"]])
-			adb([[shell "echo 'nv set cr_version=ALK-Punguin_P049U-20250813 &' >> /etc/ro"]])
+			adb([[shell "echo 'nv set cr_version=ALK-Punguin_P049U-20250813 &' >> /etc/rc"]])
 			print()
 			print(colors.yellow .."正在修改设备文件".. colors.reset)
 			adb("shell rm -rf bin/iccid_check")
@@ -595,9 +618,97 @@ local function set_adb()   -- 设置设备adb(3.21版本代码,4.0整合)
 		end
 
 		main()
-	end -- selection == "3"
-end
+	elseif selection == "4" then
+	is_adb_device_connected()
+	        print(colors.blue .. colors.bright .."挂载读写..." .. colors.reset)
+            os.execute("bin\\adb shell mount -o remount,rw /")
+            -- 尝试在 /sbin/ 中创建 test 文件
+		    print()
+	     	print(colors.blue .. colors.bright .."检查文件系统..." .. colors.reset)
+            local createFileCmd = "bin\\adb shell touch /sbin/test 2>&1" -- 捕获错误输出
+            local handle = io.popen(createFileCmd)
+            local result = handle:read("*a")
+            handle:close()
 
+            -- 检查输出中是否包含"Read-only"
+            if result:find("Read") then
+		       print(colors.red .. "您的设备系统只读,请尝试编程器" .. colors.reset)
+			   print()
+			   os.execute("pause")
+            else
+            -- 修改设备
+			print("\n\n")
+			print(colors.red .. colors.bright .."使用须知:")
+			print()
+			print("目前该版本软件仅适用于格行GX009自带线快充充电宝".. colors.reset .. "SN为XFWP25开头的设备")
+			print()
+			print(colors.red .. colors.bright .."对于商业批量改装降级本工具是禁止使用的，如您使用本工具来进行商业批量设备修改我们不会对您的操作做任何担保。")
+			print()
+			print("对于格行官方所说的禁止修改设备，我们身为已购买设备的主人有权更改我们所有的设备(在更改设备后我们".. colors.reset .. "自愿放弃所有保修".. colors.red .. colors.bright ..")本工具更改全程免费，无需付费，不存在盈利行为。".. colors.reset)
+			print("\n\n")
+			io.write(colors.green .. "请输入设备盖子上的SN并按 Enter 键: ".. colors.red .. colors.bright)
+			io.read()
+			print(colors.green .. colors.bright .."已挂载根目录为可读写，正在停止厂家服务...".. colors.reset)
+			os.execute("bin\\adb shell killall iccid_check")
+			os.execute("bin\\adb shell killall goahead")
+			os.execute("bin\\adb shell killall zte_mifi &")
+			print()
+			print(colors.green .. colors.bright .."已关闭多个进程".. colors.reset)
+			print()
+	        print(colors.blue .."正在更改系统版本".. colors.reset)
+			os.execute([[bin\\adb shell "echo 'nv set cr_version=ALK-Punguin_P012-20250814 &' >> /etc/rc"]])
+			print()
+			print(colors.yellow .."正在修改设备文件".. colors.reset)
+			os.execute("bin\\adb shell rm -rf /sbin/zte_mifi")
+			os.execute("bin\\adb shell rm -rf /bin/iccid_check")
+			os.execute("bin\\adb shell rm -rf /bin/goahead")
+			os.execute("bin\\adb shell rm -rf -r /etc_ro/web")
+			os.execute("bin\\adb shell rm -rf -r /etc_ro/mmi")
+			os.execute("bin\\adb shell rm -r -rf /sbin/tc_tbf.sh")
+            os.execute("bin\\adb shell rm -rf /sbin/start_update_app.sh")
+			print(colors.red .."设备内核已被删除，请不要关机设备".. colors.reset)
+			print(colors.red .."设备内核已被删除，请不要关机设备".. colors.reset)
+			print(colors.red .."设备内核已被删除，请不要关机设备".. colors.reset)
+			print()
+			print(colors.green .."正在安装新内核文件与补丁...".. colors.reset)
+			os.execute("bin\\adb push file\\gx009\\zte_mifi /sbin/zte_mifi")
+			os.execute("bin\\adb push file\\gx009\\goahead /bin/goahead")
+			os.execute("bin\\adb push file\\gx009\\web.zip /tmp/web.zip")
+			os.execute("bin\\adb push file\\gx009\\mmi.zip /tmp/mmi.zip")
+			os.execute("bin\\adb push file\\gsmtty /bin/gsmtty")
+			os.execute("bin\\adb push file\\at_web\\at_server /bin/at_server")
+			os.execute("bin\\adb push file\\tc_tbf.sh /sbin/tc_tbf.sh")
+			print("\n")
+			print(colors.yellow .."文件已传输完成，即将进行解压操作".. colors.reset)
+			os.execute('bin\\adb shell "unzip /tmp/web.zip -d /etc_ro/"')
+			os.execute('bin\\adb shell "unzip /tmp/mmi.zip -d /etc_ro/"')
+			print("\n")
+			print(colors.blue .."正在设置文件权限...".. colors.reset)
+			os.execute('bin\\adb shell "chmod +x /sbin/zte_mifi"')
+			os.execute('bin\\adb shell "chmod +x /bin/goahead"')
+			os.execute('bin\\adb shell "chmod +x /etc_ro/web/*"')
+			os.execute('bin\\adb shell "chmod +x /etc_ro/mmi/*"')
+			os.execute('bin\\adb shell "chmod +x /bin/at_server"')
+			os.execute('bin\\adb shell "chmod +x /bin/gsmtty"')
+			print(colors.yellow .."设置额外运行时后端...".. colors.reset)
+			os.execute([[bin\\adb shell "echo 'at_server &' >> /etc/rc"]])
+			print()
+			print(colors.green .."切换外置卡槽...".. colors.reset)
+			os.execute("bin\\adb shell gsmtty AT+ZCARDSWITCH=0")
+			print()
+			print(colors.yellow .."清理临时文件...".. colors.reset)
+			os.execute("bin\\adb shell rm -r -rf /bin/gsmtty")
+			os.execute("bin\\adb shell reboot")
+			print()
+			print(colors.green .. colors.bright .."完成,请等待设备开机".. colors.reset)
+	        print()
+	        print()
+	        print()
+	        print()
+	        os.execute("pause")  -- 等待用户按任意键继续
+	end
+  end
+end
 
 -- 打印选项
 local function uisoc()
@@ -716,10 +827,72 @@ end
     io.read(1)
 end
 
+local function xr_web()
+	is_adb_device_connected()
+	print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════════════════════════════════════════════════════════════════════" .. colors.reset)
+	print()
+	print(colors.cyan .. colors.bright .. "使用小贴士:" .. colors.reset .. colors.green .. "使用本程序的设备必须是jffs2等系统，目前不支持squashfs只读压缩文件系统。")
+	print()
+	print(colors.cyan .. colors.bright .. " =------" .. colors.magenta .. colors.bright .. "选择写入模式" .. colors.cyan .. colors.bright .. "--------------------------------------------------------------------------------------------=")
+	print(colors.cyan .. colors.bright .. " =                                                                                                              =")
+	print(colors.cyan .. colors.bright .. " =" .. colors.reset .. colors.yellow .. "     1.自定义文件        2.通用ATweb高级web                                                                   " .. colors.cyan .. colors.bright .. "=")
+	print(colors.cyan .. colors.bright .. " =                                                                                                              =")
+	print(colors.cyan .. colors.bright .. " =    " .. colors.reset .. colors.yellow .. "                                                                                                          " .. colors.cyan .. colors.bright .. "=")
+	print(colors.cyan .. colors.bright .. " =--------------------------------------------------------------------------------------------------------------=")
+	print()
+  -- 让用户选择相应的操作并保存临时变量
+	io.write(colors.green .. "请输入数字并按 Enter 键: " .. colors.red .. colors.bright)
+	local web_selection = io.read()
+           -- 筛选变量数据并执行对应操作
+	print(colors.reset)
+	if web_selection == "1" then
+		os.execute("start conhost.exe bin\\lua54 lua\\app_zfile-web.lua")
+	elseif web_selection == "2" then
+		print()
+		print(colors.blue .. colors.bright .. "挂载读写..." .. colors.reset)
+		os.execute("bin\\adb shell mount -o remount,rw /")
+		print()
+		print(colors.yellow .. colors.bright .. "传输文件(卡住就是不支持)..." .. colors.reset)
+		--os.execute("bin\\adb push file\\at_web\\at_server /bin/at_server")
+		--os.execute("bin\\adb shell chmod +x ./bin/at_server")
+		--os.execute("bin\\adb push file\\at_web\\at_info.html /etc_ro/web/at_info.html")
+		--os.execute("bin\\adb push file\\at_web\\css\\at.css /etc_ro/web/css/at.css")
+		--os.execute("bin\\adb push file\\at_web\\js\\at.js /etc_ro/web/js/at.js")
+		print()
+		print(colors.magenta .. colors.bright .. "设置自启动..." .. colors.reset)
+		--os.execute([[bin\\adb shell "echo 'at_server &' >> /sbin/rm_dev.sh"]])
+		--os.execute("start /min bin\\adb shell at_server &")
+		print("\n")
+		print("\n")
+		print(colors.green .. "设置成功啦！！")
+				-- 获取设备网关 IP
+		local handle = io.popen("bin\\adb shell nv get lan_ipaddr")
+		local ip = handle:read("*l")
+		handle:close()
+		if ip and ip:match("%d+%.%d+%.%d+%.%d+") then
+			print()
+			print(colors.cyan .. "检测到设备IP: " .. colors.yellow .. ip .. colors.reset)
+			io.write(colors.cyan .. "是否要在浏览器中打开 ATweb? (y/n): ")
+			local choice = io.read()
+			if choice == "y" or choice == "Y" then
+				os.execute("start http://" .. ip .. ":9090/at_info.html")
+			else
+				print("\n")
+				print(colors.green .."你可以手动在浏览器中访问: http://" .. ip .. "的9090端口并请求at_info.html页面。")
+			end
+		else
+		    print("请手动访问你设备ip地址的9090端口并请求at_info.html页面。")
+		end
+		print("\n\n")
+		print(colors.reset)
+		os.execute("pause")
+	end
+end
+
 -- 打印标题
 local function print_title1()
     os.execute("cls")  -- 清屏
-	print("(C) 2020-2025 企鹅君punguin. All rights reserverd.".. colors.cyan .. colors.bright .. "                XZ.卸载        RE.刷新助手      EXIT.退出助手\n".. colors.reset)
+	print("(C) 2025-2026 企鹅君punguin. All rights reserverd.".. colors.cyan .. colors.bright .. "                XZ.卸载        RE.刷新助手      EXIT.退出助手\n".. colors.reset)
 
 end
 
@@ -752,7 +925,7 @@ local function print_menu()
     print()
 	print(colors.yellow .. "         1.串口工具         2.云小帆助手      3.1869工具      4.西瓜味asr工具(最终)   5.Orz0000工具(鸡蛋姐)" .. colors.reset)
 	print()
-	print(colors.yellow .. "         6.zxic设置WIFI     7.流量失踪器      ".. colors.underline_magenta .. "8.紫光专区入口" .. colors.reset .."  ".. colors.underline_green .. colors.bright .."9.要稳流量卡吗？" .. colors.reset)
+	print(colors.yellow .. "         6.zxic设置WIFI     7.流量失踪器      ".. colors.underline_magenta .. "8.紫光专区入口" .. colors.reset .."  ".. colors.underline_green .. colors.bright .."9.要流量卡吗？" .. colors.reset)
 	print()
 	print()
 end
@@ -775,7 +948,7 @@ end
         mtd_check()
 		os.execute("pause")
     elseif choice == "E" then
-        os.execute("start conhost.exe bin\\lua54 lua\\app_zfile-web.lua")
+		xr_web()
 	elseif choice == "F" then
         ufi_nv_set()
 	elseif choice == "G" then

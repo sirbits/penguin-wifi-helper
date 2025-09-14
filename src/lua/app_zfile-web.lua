@@ -1,7 +1,7 @@
 -- web.lua
 -- 简单的jffs2可读写设备烧录web后台
 -- 
--- 版权 (C) 2025 企鹅君Punguin
+-- 版权 (C) 2025-2026 企鹅君Punguin
 --
 -- 本程序是自由软件：你可以根据自由软件基金会发布的GNU Affero通用公共许可证的条款，即许可证的第3版或（您选择的）任何后来的版本重新发布它和/或修改它。。
 -- 本程序的发布是希望它能起到作用。但没有任何保证；甚至没有隐含的保证。本程序的分发是希望它是有用的，但没有任何保证，甚至没有隐含的适销对路或适合某一特定目的的保证。 参见 GNU Affero通用公共许可证了解更多细节。
@@ -30,7 +30,7 @@ end
 local function check_file()
     print(colors.blue .. colors.bright .. "搜寻设备..." .. colors.reset)
     delay.sleep(4)
-
+    os.execute("cls")
     -- 运行 adb devices 命令并捕获返回结果
     local adbDevicesCommand = "bin\\adb devices"
     local devicesOutput = executeADBCommand(adbDevicesCommand)
@@ -54,16 +54,22 @@ local function check_file()
         os.execute("pause")
         os.exit(1)
     else
-        print("该机器为可写文件系统,支持文件上传(可能是jffs2)")
+        print(colors.green .. colors.bright .."该机器为可写文件系统,支持文件上传(可能是jffs2)".. colors.reset)
         print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════" .. colors.reset)
     end
 end
 
+-- 修复 5.1-Build-250816
+folderPath = nil -- 先声明全局nil变量
+-- End
 
 local function file()
 -- 获取用户拖入的文件夹路径
-print("请将文件夹拖入此窗口，然后按回车键:")
-local folderPath = io.read("*l") -- 读取用户输入的文件夹路径
+print(colors.yellow .."请将文件夹拖入此窗口，然后按回车键:" ..colors.red)
+  -- 修复 5.1-Build-250816
+  -- 去除local,改为全局变量
+  folderPath = io.read("*l") -- 读取用户输入的文件夹路径
+  -- End
 
 -- 去掉可能存在的引号
 folderPath = folderPath:gsub("\"", "")
@@ -75,7 +81,8 @@ local result = handle:read("*a")
 handle:close()
 
 if not result:find("ok") then
-    print("无效的文件夹路径！")
+    print(colors.red .. "无效的文件夹路径！")
+	os.execute("pause")
     os.exit(1)
 end
 end
@@ -83,7 +90,7 @@ end
 -- 获取当前 Lua 脚本所在目录
 local function getScriptDirectory()
     local str = arg[0]
-    return str:match("(.*/)") or str:match("(.*\\") or ".\\"
+    return str:match("(.*/)") or str:match("(.*\\??") or ".\\"
 end
 
 -- 创建目录
@@ -101,7 +108,8 @@ end
 
 -- 备份 /etc_ro/web 文件夹到指定目录
 local function backupWebFolder(tempBackupPath)
-    print(colors.green .. "正在备份设备后台WEB文件夹..." .. colors.reset)
+    print()
+    print(colors.green .. "正在备份设备后台WEB文件夹..." .. colors.blue)
     local backupCommand = "bin\\adb pull /etc_ro/web \"" .. tempBackupPath .. "\""
     return executeADBCommand(backupCommand)
 end
@@ -109,18 +117,23 @@ end
 -- 移动并重命名备份文件夹
 local function moveBackupFolder(tempBackupPath, backupDir)
     -- 询问用户输入文件夹名称
-    print(colors.yellow .. "请输入备份文件夹的名称:" .. colors.reset)
+	print()
+    print(colors.yellow .. "请输入备份文件夹的名称:" .. colors.red)
     local folderName = io.read()
+	print(colors.blue)
 
     -- 移动并重命名文件夹
     local moveCommand = "move /Y \"" .. tempBackupPath .. "\" \"" .. backupDir .. folderName .. "\""
     local moveResult = os.execute(moveCommand)
-
+    print(colors.reset)
+	
     -- 检查移动结果
     if moveResult then
+	    print()
         print(colors.green .. "备份完成，文件已保存到: " .. backupDir .. folderName .. colors.reset)
 		os.execute("explorer TQ")
     else
+	    print()
         print(colors.red .. "移动文件失败，请检查权限。" .. colors.reset)
     end
 end
@@ -134,6 +147,7 @@ local function Backup_web()
     local backupDir = scriptDir .. "TQ\\"
 
     -- 询问用户是否备份 /etc_ro/web 文件夹
+	print()
     print(colors.yellow .. colors.bright .. "是否备份设备原后台? (y/n)" .. colors.reset)
     local userInput = io.read()
 
@@ -143,13 +157,15 @@ local function Backup_web()
         
         -- 检查备份结果
         if backupResult and backupResult:find("error") then
+		    print()
             print(colors.red .. "备份失败，请检查设备连接及权限。" .. colors.reset)
         else
             moveBackupFolder(tempBackupPath, backupDir)
         end
     else
         -- 用户选择不备份
-        print(colors.red .. "已跳过备份操作" .. colors.reset)
+		print()
+        print(colors.blue .. "已跳过备份操作" .. colors.reset)
     end
 
     print(colors.cyan .. colors.bright .. "═════════════════════════════════════════════" .. colors.reset)
@@ -163,8 +179,8 @@ os.execute(deleteCommand)
 -- 上传整个文件夹到设备
 local uploadCommand = string.format("bin\\adb push \"%s\" /etc_ro/web", folderPath)
 os.execute(uploadCommand)
-
-print("上传完成,设备web已替换!")
+print()
+print(colors.green .. colors.bright .."上传完成,设备web已替换!"..colors.reset)
 end
 
 os.execute("bin\\adb shell mount -o remount,rw /")
