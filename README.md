@@ -4,7 +4,7 @@
 </div>
 
 ---
-#### ⚠️ No English documentation yet. If needed, please translate manually.
+#### Documentation translated to English. See original repo https://github.com/punguin-32k/penguin-wifi-helper
 ---
 
 ## Introduction  
